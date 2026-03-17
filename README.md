@@ -1,17 +1,17 @@
-# 💰 Spending Tracker
+# $$$ Spending Tracker $$$
 
 A simple, clean web app to track your monthly spending by category. Built with Flask and SQLite.
 
 ## Features
 
-- ✅ Add spending entries with amount, category, date, and notes
-- ✅ View all entries organized by date
-- ✅ Organized grocery categories (Costco, Walmart, Target, Trader Joe's, Indian Store)
-- ✅ Delete individual entries or clear all data
-- ✅ Prevents future date entries
-- ✅ Timezone-aware (PDT support)
-- ✅ Persistent storage with SQLite database
-- ✅ Live online at https://spending-tracker-yiao.onrender.com
+-  Add spending entries with amount, category, date, and notes
+-  View all entries organized by date
+-  Organized grocery categories (Costco, Walmart, Target, Trader Joe's, Indian Store)
+-  Delete individual entries or clear all data
+-  Prevents future date entries
+-  Timezone-aware (PDT support)
+-  Persistent storage with SQLite database
+-  Live online at https://spending-tracker-yiao.onrender.com
 
 ## Tech Stack
 
