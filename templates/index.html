@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spending Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button.primary {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+            margin-top: 8px;
+        }
+
+        button.primary:hover {
+            background: #0052a3;
+        }
+
+        button.danger {
+            background: transparent;
+            color: #d32f2f;
+            border-color: #d32f2f;
+            margin-top: 1rem;
+        }
+
+        button.danger:hover {
+            background: #ffebee;
+        }
+
+        .entries-section {
+            margin-top: 2rem;
+        }
+
+        .entry-item {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .entry-details {
+            flex: 1;
+        }
+
+        .entry-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .entry-category {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .entry-amount {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .entry-date {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .entry-notes {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .delete-btn {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .delete-btn:hover {
+            background: #b71c1c;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 2rem 1rem;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: #c8e6c9;
+            color: #2e7d32;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Spending Tracker</h1>
+
+        <div class="success-message" id="successMessage">Entry added successfully!</div>
+
+        <div class="card">
+            <h2 style="font-size: 18px; margin-bottom: 1.5rem; color: #333;">Add spending</h2>
+            <form id="spendingForm">
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input type="number" id="amount" placeholder="0.00" step="0.01" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="category" required>
+                        <option value="">Select a category</option>
+                        <option value="" disabled style="font-weight: 500;">── Groceries ──</option>
+                        <option value="Groceries - Costco">Costco</option>
+                        <option value="Groceries - Indian Store">Indian Store</option>
+                        <option value="Groceries - Walmart">Walmart</option>
+                        <option value="Groceries - Trader Joe's">Trader Joe's</option>
+                        <option value="Groceries - Target">Target</option>
+                        <option value="" disabled style="font-weight: 500;">── Other ──</option>
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Health">Health</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Notes (optional)</label>
+                    <input type="text" id="notes" placeholder="e.g., Weekly groceries">
+                </div>
+
+                <button type="submit" class="primary">Add entry</button>
+            </form>
+        </div>
+
+        <button class="danger" id="deleteAllBtn">Clear all data</button>
+
+        <div class="entries-section">
+            <h2 style="font-size: 18px; margin-bottom: 1rem; color: #333;">Recent entries</h2>
+            <div id="entriesList"></div>
+        </div>
+    </div>
+
+    <script>
+        const apiBaseUrl = '/api';
+
+        // Set today's date as default and prevent future dates
+        const today = new Date();
+        const dateInput = document.getElementById('date');
+        const todayString = today.getFullYear() + '-' + 
+                           String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(today.getDate()).padStart(2, '0');
+        
+        dateInput.value = todayString;
+        dateInput.max = todayString;  // Prevents selecting future dates
+
+        // Load entries on page load
+        loadEntries();
+
+        // Form submission
+        document.getElementById('spendingForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Validate date is not in the future
+            const selectedDate = new Date(document.getElementById('date').value);
+            const todayDate = new Date(todayString);
+            
+            if (selectedDate > todayDate) {
+                alert('Cannot add entries for future dates!');
+                return;
+            }
+
+            const entry = {
+                amount: parseFloat(document.getElementById('amount').value),
+                category: document.getElementById('category').value,
+                date: document.getElementById('date').value,
+                notes: document.getElementById('notes').value
+            };
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/entries`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entry)
+                });
+
+                if (response.ok) {
+                    this.reset();
+                    document.getElementById('date').valueAsDate = new Date();
+                    
+                    // Show success message
+                    const msg = document.getElementById('successMessage');
+                    msg.style.display = 'block';
+                    setTimeout(() => msg.style.display = 'none', 3000);
+
+                    loadEntries();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to add entry');
+            }
+        });
+
+        // Load and display entries
+        async function loadEntries() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/entries`);
+                const entries = await response.json();
+
+                const entriesList = document.getElementById('entriesList');
+                
+                if (entries.length === 0) {
+                    entriesList.innerHTML = '<div class="empty-message">No entries yet. Add your first spending entry!</div>';
+                    return;
+                }
+
+                // Sort by date (newest first)
+                entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                entriesList.innerHTML = entries.map(entry => {
+                    // Parse date as YYYY-MM-DD and format without timezone issues
+                    const [year, month, day] = entry.date.split('-');
+                    const dateObj = new Date(year, month - 1, day);
+                    const formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                    
+                    return `
+                    <div class="entry-item">
+                        <div class="entry-details">
+                            <div class="entry-header">
+                                <span class="entry-category">${entry.category}</span>
+                                <span class="entry-amount">$${entry.amount.toFixed(2)}</span>
+                            </div>
+                            <div class="entry-date">${formattedDate}</div>
+                            ${entry.notes ? `<div class="entry-notes">${entry.notes}</div>` : ''}
+                        </div>
+                        <button class="delete-btn" onclick="deleteEntry(${entry.id})">Delete</button>
+                    </div>
+                `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading entries:', error);
+            }
+        }
+
+        // Delete entry
+        async function deleteEntry(entryId) {
+            if (!confirm('Delete this entry?')) return;
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/entries/${entryId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadEntries();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to delete entry');
+            }
+        }
+
+        // Clear all data
+        document.getElementById('deleteAllBtn').addEventListener('click', async function() {
+            if (!confirm('Are you sure you want to delete ALL spending data? This cannot be undone.')) return;
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/entries/clear-all`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadEntries();
+                    alert('All data cleared!');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to clear data');
+            }
+        });
+    </script>
+</body>
+</html>
