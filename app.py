@@ -1,38 +1,34 @@
 from flask import Flask, render_template, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+import sqlite3
 import os
+import json
+from datetime import datetime
 
 app = Flask(__name__)
 
 # Database setup
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'spending.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+DB_PATH = 'spending.db'
 
-db = SQLAlchemy(app)
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-# Database model
-class Spending(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    amount = db.Column(db.Float, nullable=False)
-    category = db.Column(db.String(100), nullable=False)
-    date = db.Column(db.String(10), nullable=False)
-    notes = db.Column(db.String(200))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+def init_db():
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS spending
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  amount REAL NOT NULL,
+                  category TEXT NOT NULL,
+                  date TEXT NOT NULL,
+                  notes TEXT,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+    conn.commit()
+    conn.close()
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'amount': self.amount,
-            'category': self.category,
-            'date': self.date,
-            'notes': self.notes
-        }
-
-# Create tables
-with app.app_context():
-    db.create_all()
+# Initialize database on startup
+init_db()
 
 # Routes
 @app.route('/')
@@ -41,38 +37,61 @@ def index():
 
 @app.route('/api/entries', methods=['GET'])
 def get_entries():
-    entries = Spending.query.all()
-    return jsonify([entry.to_dict() for entry in entries])
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('SELECT id, amount, category, date, notes FROM spending ORDER BY date DESC')
+    rows = c.fetchall()
+    conn.close()
+    
+    entries = []
+    for row in rows:
+        entries.append({
+            'id': row['id'],
+            'amount': row['amount'],
+            'category': row['category'],
+            'date': row['date'],
+            'notes': row['notes']
+        })
+    return jsonify(entries)
 
 @app.route('/api/entries', methods=['POST'])
 def add_entry():
     data = request.get_json()
     
-    new_entry = Spending(
-        amount=float(data['amount']),
-        category=data['category'],
-        date=data['date'],
-        notes=data.get('notes', '')
-    )
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('INSERT INTO spending (amount, category, date, notes) VALUES (?, ?, ?, ?)',
+              (float(data['amount']), data['category'], data['date'], data.get('notes', '')))
+    conn.commit()
+    entry_id = c.lastrowid
+    conn.close()
     
-    db.session.add(new_entry)
-    db.session.commit()
-    
-    return jsonify(new_entry.to_dict()), 201
+    return jsonify({
+        'id': entry_id,
+        'amount': float(data['amount']),
+        'category': data['category'],
+        'date': data['date'],
+        'notes': data.get('notes', '')
+    }), 201
 
 @app.route('/api/entries/<int:entry_id>', methods=['DELETE'])
 def delete_entry(entry_id):
-    entry = Spending.query.get(entry_id)
-    if entry:
-        db.session.delete(entry)
-        db.session.commit()
-        return jsonify({'success': True}), 200
-    return jsonify({'error': 'Entry not found'}), 404
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('DELETE FROM spending WHERE id = ?', (entry_id,))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'success': True}), 200
 
 @app.route('/api/entries/clear-all', methods=['DELETE'])
 def clear_all():
-    Spending.query.delete()
-    db.session.commit()
+    conn = get_db()
+    c = conn.cursor()
+    c.execute('DELETE FROM spending')
+    conn.commit()
+    conn.close()
+    
     return jsonify({'success': True}), 200
 
 if __name__ == '__main__':
